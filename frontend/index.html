@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarlemTMS - Sistema de Logística Inteligente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--dark-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            background-color: rgba(52, 152, 219, 0.05);
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .upload-area.dragover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-color: var(--secondary-color);
+        }
+
+        .stats-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card p {
+            margin: 0;
+            color: #7f8c8d;
+        }
+
+        .table-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 30px;
+        }
+
+        .status-success {
+            background-color: var(--secondary-color);
+        }
+
+        .status-warning {
+            background-color: var(--warning-color);
+        }
+
+        .status-danger {
+            background-color: var(--danger-color);
+        }
+
+        .status-info {
+            background-color: #3498db;
+        }
+
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner-content {
+            text-align: center;
+            color: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .notification.success {
+            background-color: var(--secondary-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .filter-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-truck me-2"></i>HarlemTMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#upload">Upload de Arquivos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reports">Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#settings">Configurações</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">Sistema de Logística Inteligente</h1>
+            <p class="lead mb-5">Unifique, analise e otimize suas operações de entrega com dados precisos</p>
+            <a href="#upload" class="btn btn-light btn-lg">Começar Agora <i class="bi bi-arrow-right ms-2"></i></a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <!-- Stats Cards -->
+        <div class="row mb-5">
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="stats-card bg-white">
+                    <i class="bi bi-file-earmark-text text-primary fs-1 mb-3"></i>
+                    <h3 id="totalPedidos">0</h3>
+                    <p>Total de Pedidos</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="stats-card bg-white">
+                    <i class="bi bi-truck text-success fs-1 mb-3"></i>
+                    <h3 id="entregasHoje">0</h3>
+                    <p>Entregas Hoje</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="stats-card bg-white">
+                    <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+                    <h3 id="pedidosAtrasados">0</h3>
+                    <p>Pedidos Atrasados</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="stats-card bg-white">
+                    <i class="bi bi-people text-info fs-1 mb-3"></i>
+                    <h3 id="entregadoresAtivos">0</h3>
+                    <p>Entregadores Ativos</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <section id="upload" class="mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload de Arquivos</h3>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area" id="uploadArea">
+                        <i class="bi bi-file-earmark-arrow-up fs-1 text-primary mb-3"></i>
+                        <h4>Arraste e solte seus arquivos aqui</h4>
+                        <p class="text-muted">ou clique para selecionar os arquivos</p>
+                        <p class="text-muted small">Suporte para: CSV, Excel (.xlsx)</p>
+                        <input type="file" id="fileInput" class="d-none" multiple accept=".csv,.xlsx">
+                        <button class="btn btn-primary mt-3" id="selectFilesBtn">Selecionar Arquivos</button>
+                    </div>
+                    
+                    <div class="mt-4" id="fileList"></div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-success" id="processBtn">
+                            <i class="bi bi-play-circle me-2"></i>Processar Arquivos
+                        </button>
+                        <button class="btn btn-outline-secondary" id="clearBtn">
+                            <i class="bi bi-x-circle me-2"></i>Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Section -->
+        <section class="filter-section mb-5">
+            <h3 class="mb-4"><i class="bi bi-funnel me-2"></i>Filtros e Busca</h3>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="empresaFilter" class="form-label">Empresa</label>
+                    <select class="form-select" id="empresaFilter">
+                        <option value="">Todas</option>
+                        <option value="Magazine Luiza">Magazine Luiza</option>
+                        <option value="Pichau">Pichau</option>
+                        <option value="PetLove">PetLove</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="FINALIZADO">Entregue</option>
+                        <option value="ROTA">Em Rota</option>
+                        <option value="DEVOLVIDO">Devolvido</option>
+                        <option value="AUSENTE">Ausente</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="dateFilter" class="form-label">Data Previsão</label>
+                    <input type="date" class="form-control" id="dateFilter">
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" id="applyFilterBtn">
+                        <i class="bi bi-search me-2"></i>Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="mb-5">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Status de Entregas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Pedidos por Empresa</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="empresaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Table Section -->
+        <section id="dataTable" class="mb-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0"><i class="bi bi-table me-2"></i>Dados Unificados</h3>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-2" id="exportCsvBtn">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" id="exportExcelBtn">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table table-hover" id="dataTableContent">
+                            <thead>
+                                <tr>
+                                    <th>ID Pedido</th>
+                                    <th>Empresa</th>
+                                    <th>Cliente</th>
+                                    <th>Status</th>
+                                    <th>Entregador</th>
+                                    <th>Data Previsão</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center" id="pagination">
+                            <!-- Pagination will be inserted here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-file-earmark-bar-graph me-2"></i>Relatórios</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Blacklist de Clientes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Clientes com mais de 2 insucessos de entrega</p>
+                            <button class="btn btn-primary w-100" id="generateBlacklistBtn">
+                                <i class="bi bi-download me-2"></i>Baixar Relatório
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Pontuação de Entregadores</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Avaliação de desempenho dos entregadores</p>
+                            <button class="btn btn-primary w-100" id="generateDeliverersBtn">
+                                <i class="bi bi-download me-2"></i>Baixar Relatório
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Pedidos Vencendo Hoje</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Pedidos com previsão para hoje não finalizados</p>
+                            <button class="btn btn-primary w-100" id="generateExpiringBtn">
+                                <i class="bi bi-download me-2"></i>Baixar Relatório
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>HarlemTMS</h5>
+                    <p>Sistema de gestão logística inteligente para otimizar suas operações de entrega.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#dashboard" class="text-white-50">Dashboard</a></li>
+                        <li><a href="#upload" class="text-white-50">Upload de Arquivos</a></li>
+                        <li><a href="#reports" class="text-white-50">Relatórios</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Contato</h5>
+                    <p class="text-white-50">
+                        <i class="bi bi-envelope me-2"></i>contato@harlemtms.com.br<br>
+                        <i class="bi bi-telephone me-2"></i>(11) 99999-9999
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-white-50">
+            <div class="text-center text-white-50">
+                <p>&copy; 2023 HarlemTMS. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-content">
+            <div class="spinner-border text-light mb-3" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <h3>Processando seus arquivos...</h3>
+            <p>Isso pode levar alguns minutos</p>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        // Variáveis globais
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Elementos do DOM
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectFilesBtn = document.getElementById('selectFilesBtn');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const notification = document.getElementById('notification');
+        const tableBody = document.getElementById('tableBody');
+        const pagination = document.getElementById('pagination');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const empresaFilter = document.getElementById('empresaFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const generateBlacklistBtn = document.getElementById('generateBlacklistBtn');
+        const generateDeliverersBtn = document.getElementById('generateDeliverersBtn');
+        const generateExpiringBtn = document.getElementById('generateExpiringBtn');
+
+        // Event Listeners
+        selectFilesBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        processBtn.addEventListener('click', processFiles);
+        clearBtn.addEventListener('click', clearFiles);
+        applyFilterBtn.addEventListener('click', applyFilters);
+        exportCsvBtn.addEventListener('click', exportToCsv);
+        exportExcelBtn.addEventListener('click', exportToExcel);
+        generateBlacklistBtn.addEventListener('click', generateBlacklistReport);
+        generateDeliverersBtn.addEventListener('click', generateDeliverersReport);
+        generateExpiringBtn.addEventListener('click', generateExpiringReport);
+
+        // Drag and Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect() {
+            handleFiles(fileInput.files);
+        }
+
+        function handleFiles(files) {
+            fileList.innerHTML = '';
+            
+            if (files.length === 0) {
+                showNotification('Nenhum arquivo selecionado', 'error');
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileItem = document.createElement('div');
+                fileItem.className = 'd-flex align-items-center p-2 mb-2 border rounded';
+                
+                const icon = getFileIcon(file.name);
+                const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+                
+                fileItem.innerHTML = `
+                    <i class="${icon} fs-4 me-3 text-primary"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${fileName}</div>
+                        <small class="text-muted">${formatFileSize(file.size)}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger remove-file">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
+                
+                fileList.appendChild(fileItem);
+                
+                // Adicionar evento para remover arquivo
+                fileItem.querySelector('.remove-file').addEventListener('click', function() {
+                    fileItem.remove();
+                });
+            }
+        }
+
+        function getFileIcon(filename) {
+            const extension = filename.split('.').pop().toLowerCase();
+            if (extension === 'csv') return 'bi bi-file-earmark-text';
+            if (extension === 'xlsx' || extension === 'xls') return 'bi bi-file-earmark-excel';
+            return 'bi bi-file-earmark';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function clearFiles() {
+            fileList.innerHTML = '';
+            fileInput.value = '';
+        }
+
+        function processFiles() {
+            const files = [];
+            const fileItems = fileList.querySelectorAll('.d-flex');
+            
+            if (fileItems.length === 0) {
+                showNotification('Nenhum arquivo para processar', 'error');
+                return;
+            }
+            
+            fileItems.forEach(item => {
+                const fileName = item.querySelector('.fw-bold').textContent;
+                files.push(fileName);
+            });
+            
+            // Simular processamento (na implementação real, enviaria para o backend)
+            loadingSpinner.style.display = 'flex';
+            
+            setTimeout(() => {
+                // Simular dados de retorno
+                generateMockData();
+                loadingSpinner.style.display = 'none';
+                showNotification('Arquivos processados com sucesso!', 'success');
+                
+                // Atualizar estatísticas
+                updateStats();
+                
+                // Renderizar tabela
+                renderTable();
+                
+                // Renderizar gráficos
+                renderCharts();
+            }, 2000);
+        }
+
+        function generateMockData() {
+            // Gerar dados mock para demonstração
+            const statuses = ['FINALIZADO', 'ROTA', 'DEVOLVIDO', 'AUSENTE', 'CANCELADO'];
+            const empresas = ['Magazine Luiza', 'Pichau', 'PetLove'];
+            const entregadores = ['João Silva', 'Maria Santos', 'Carlos Pereira', 'Ana Oliveira', 'Roberto Costa'];
+            
+            allData = [];
+            
+            for (let i = 1; i <= 100; i++) {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const empresa = empresas[Math.floor(Math.random() * empresas.length)];
+                const entregador = entregadores[Math.floor(Math.random() * entregadores.length)];
+                
+                // Gerar data de previsão (hoje ou próximos dias)
+                const daysOffset = Math.floor(Math.random() * 7);
+                const dataPrevisao = new Date();
+                dataPrevisao.setDate(dataPrevisao.getDate() + daysOffset);
+                
+                allData.push({
+                    idPedido: `PED-${i.toString().padStart(5, '0')}`,
+                    empresa: empresa,
+                    cliente: `Cliente ${i}`,
+                    status: status,
+                    entregador: entregador,
+                    dataPrevisao: dataPrevisao.toISOString().split('T')[0],
+                    endereco: `Rua Exemplo ${i}, Bairro Teste`,
+                    cidade: 'São Paulo',
+                    estado: 'SP',
+                    cep: `${Math.floor(10000 + Math.random() * 90000)}-000`
+                });
+            }
+            
+            filteredData = [...allData];
+        }
+
+        function updateStats() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const entregasHoje = allData.filter(item => item.dataPrevisao === hoje).length;
+            const pedidosAtrasados = allData.filter(item => 
+                new Date(item.dataPrevisao) < new Date() && item.status !== 'FINALIZADO'
+            ).length;
+            
+            const entregadoresAtivos = new Set(allData.map(item => item.entregador)).size;
+            
+            document.getElementById('totalPedidos').textContent = allData.length;
+            document.getElementById('entregasHoje').textContent = entregasHoje;
+            document.getElementById('pedidosAtrasados').textContent = pedidosAtrasados;
+            document.getElementById('entregadoresAtivos').textContent = entregadoresAtivos;
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            // Calcular paginação
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+            
+            // Renderizar linhas da tabela
+            paginatedData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                const statusClass = getStatusClass(item.status);
+                const statusText = getStatusText(item.status);
+                
+                row.innerHTML = `
+                    <td>${item.idPedido}</td>
+                    <td>${item.empresa}</td>
+                    <td>${item.cliente}</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td>${item.entregador}</td>
+                    <td>${formatDate(item.dataPrevisao)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Renderizar paginação
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            pagination.innerHTML = '';
+            
+            // Botão Anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1">Anterior</a>`;
+            prevLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+            pagination.appendChild(prevLi);
+            
+            // Números de página
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    renderTable();
+                });
+                pagination.appendChild(li);
+            }
+            
+            // Botão Próximo
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#">Próximo</a>`;
+            nextLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+            pagination.appendChild(nextLi);
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'FINALIZADO': return 'status-success';
+                case 'ROTA': return 'status-info';
+                case 'DEVOLVIDO': 
+                case 'AUSENTE': 
+                case 'CANCELADO': return 'status-danger';
+                default: return 'status-warning';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'FINALIZADO': return 'Entregue';
+                case 'ROTA': return 'Em Rota';
+                case 'DEVOLVIDO': return 'Devolvido';
+                case 'AUSENTE': return 'Ausente';
+                case 'CANCELADO': return 'Cancelado';
+                default: return status;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function applyFilters() {
+            const empresaValue = empresaFilter.value;
+            const statusValue = statusFilter.value;
+            const dateValue = dateFilter.value;
+            
+            filteredData = allData.filter(item => {
+                return (
+                    (empresaValue === '' || item.empresa === empresaValue) &&
+                    (statusValue === '' || item.status === statusValue) &&
+                    (dateValue === '' || item.dataPrevisao === dateValue)
+                );
+            });
+            
+            currentPage = 1;
+            renderTable();
+            showNotification('Filtros aplicados com sucesso!', 'success');
+        }
+
+        function renderCharts() {
+            // Gráfico de Status
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusCounts = {};
+            
+            allData.forEach(item => {
+                statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+            });
+            
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(statusCounts).map(status => getStatusText(status)),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: [
+                            '#2ecc71', // FINALIZADO
+                            '#3498db', // ROTA
+                            '#e74c3c', // DEVOLVIDO
+                            '#f39c12', // AUSENTE
+                            '#9b59b6'  // CANCELADO
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Empresas
+            const empresaCtx = document.getElementById('empresaChart').getContext('2d');
+            const empresaCounts = {};
+            
+            allData.forEach(item => {
+                empresaCounts[item.empresa] = (empresaCounts[item.empresa] || 0) + 1;
+            });
+            
+            new Chart(empresaCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(empresaCounts),
+                    datasets: [{
+                        label: 'Número de Pedidos',
+                        data: Object.values(empresaCounts),
+                        backgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportToCsv() {
+            if (filteredData.length === 0) {
+                showNotification('Nenhum dado para exportar', 'error');
+                return;
+            }
+            
+            let csv = 'ID Pedido,Empresa,Cliente,Status,Entregador,Data Previsão,Endereço,Cidade,Estado,CEP\n';
+            
+            filteredData.forEach(item => {
+                csv += `"${item.idPedido}","${item.empresa}","${item.cliente}","${getStatusText(item.status)}","${item.entregador}","${item.dataPrevisao}","${item.endereco}","${item.cidade}","${item.estado}","${item.cep}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'dados_unificados.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Dados exportados para CSV com sucesso!', 'success');
+        }
+
+        function exportToExcel() {
+            if (filteredData.length === 0) {
+                showNotification('Nenhum dado para exportar', 'error');
+                return;
+            }
+            
+            // Preparar dados para exportação
+            const dataForExport = filteredData.map(item => ({
+                'ID Pedido': item.idPedido,
+                'Empresa': item.empresa,
+                'Cliente': item.cliente,
+                'Status': getStatusText(item.status),
+                'Entregador': item.entregador,
+                'Data Previsão': item.dataPrevisao,
+                'Endereço': item.endereco,
+                'Cidade': item.cidade,
+                'Estado': item.estado,
+                'CEP': item.cep
+            }));
+            
+            // Criar workbook
+            const ws = XLSX.utils.json_to_sheet(dataForExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Dados Unificados');
+            
+            // Salvar arquivo
+            XLSX.writeFile(wb, 'dados_unificados.xlsx');
+            
+            showNotification('Dados exportados para Excel com sucesso!', 'success');
+        }
+
+        function generateBlacklistReport() {
+            // Simular geração de relatório
+            const blacklistData = allData
+                .filter(item => ['DEVOLVIDO', 'AUSENTE', 'CANCELADO'].includes(item.status))
+                .reduce((acc, item) => {
+                    const key = `${item.cliente}_${item.cep}`;
+                    if (!acc[key]) {
+                        acc[key] = {
+                            cliente: item.cliente,
+                            cep: item.cep,
+                            cidade: item.cidade,
+                            insucessos: 0,
+                            ultimoInsucesso: item.dataPrevisao,
+                            motivos: []
+                        };
+                    }
+                    acc[key].insucessos++;
+                    acc[key].motivos.push(getStatusText(item.status));
+                    return acc;
+                }, {});
+            
+            const reportData = Object.values(blacklistData)
+                .filter(item => item.insucessos > 2)
+                .map(item => ({
+                    'Cliente': item.cliente,
+                    'CEP': item.cep,
+                    'Cidade': item.cidade,
+                    'Total de Insucessos': item.insucessos,
+                    'Último Insucesso': item.ultimoInsucesso,
+                    'Motivos': item.motivos.join(', ')
+                }));
+            
+            if (reportData.length === 0) {
+                showNotification('Nenhum cliente na blacklist encontrado', 'error');
+                return;
+            }
+            
+            // Criar workbook
+            const ws = XLSX.utils.json_to_sheet(reportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Blacklist de Clientes');
+            
+            // Salvar arquivo
+            XLSX.writeFile(wb, 'blacklist_clientes.xlsx');
+            
+            showNotification('Relatório de blacklist gerado com sucesso!', 'success');
+        }
+
+        function generateDeliverersReport() {
+            // Simular geração de relatório
+            const deliverersData = allData.reduce((acc, item) => {
+                if (!acc[item.entregador]) {
+                    acc[item.entregador] = {
+                        entregador: item.entregador,
+                        totalPedidos: 0,
+                        sucessos: 0
+                    };
+                }
+                acc[item.entregador].totalPedidos++;
+                if (item.status === 'FINALIZADO') {
+                    acc[item.entregador].sucessos++;
+                }
+                return acc;
+            }, {});
+            
+            const reportData = Object.values(deliverersData).map(item => {
+                const taxaSucesso = (item.sucessos / item.totalPedidos * 100).toFixed(2);
+                return {
+                    'Entregador': item.entregador,
+                    'Total de Pedidos': item.totalPedidos,
+                    'Entregas Realizadas': item.sucessos,
+                    'Taxa de Sucesso (%)': taxaSucesso,
+                    'Pontuação': taxaSucesso > 97 ? 'Alta (>97%)' : 'Normal'
+                };
+            });
+            
+            // Criar workbook
+            const ws = XLSX.utils.json_to_sheet(reportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Pontuação de Entregadores');
+            
+            // Salvar arquivo
+            XLSX.writeFile(wb, 'pontuacao_entregadores.xlsx');
+            
+            showNotification('Relatório de entregadores gerado com sucesso!', 'success');
+        }
+
+        function generateExpiringReport() {
+            // Simular geração de relatório
+            const hoje = new Date().toISOString().split('T')[0];
+            const expiringData = allData.filter(item => 
+                item.dataPrevisao === hoje && item.status !== 'FINALIZADO'
+            );
+            
+            if (expiringData.length === 0) {
+                showNotification('Nenhum pedido vencendo hoje encontrado', 'error');
+                return;
+            }
+            
+            const reportData = expiringData.map(item => ({
+                'ID Pedido': item.idPedido,
+                'Empresa': item.empresa,
+                'Cliente': item.cliente,
+                'Status': getStatusText(item.status),
+                'Entregador': item.entregador,
+                'Endereço': item.endereco,
+                'Cidade': item.cidade,
+                'Estado': item.estado,
+                'CEP': item.cep
+            }));
+            
+            // Criar workbook
+            const ws = XLSX.utils.json_to_sheet(reportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Pedidos Vencendo Hoje');
+            
+            // Salvar arquivo
+            XLSX.writeFile(wb, 'pedidos_vencendo_hoje.xlsx');
+            
+            showNotification('Relatório de pedidos vencendo hoje gerado com sucesso!', 'success');
+        }
+
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Gerar dados mock iniciais para demonstração
+            generateMockData();
+            updateStats();
+            renderTable();
+            renderCharts();
+        });
+    </script>
+</body>
+</html>
