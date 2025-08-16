@@ -665,74 +665,75 @@
             fileInput.value = '';
         }
 
-        function processFiles() {
-            const files = [];
-            const fileItems = fileList.querySelectorAll('.d-flex');
+    function processFiles() {
+        const fileItems = fileList.querySelectorAll('.d-flex');
             
-            if (fileItems.length === 0) {
-                showNotification('Nenhum arquivo para processar', 'error');
-                return;
-            }
-            
-            fileItems.forEach(item => {
-                const fileName = item.querySelector('.fw-bold').textContent;
-                files.push(fileName);
-            });
-            
-            // Simular processamento (na implementação real, enviaria para o backend)
-            loadingSpinner.style.display = 'flex';
-            
-            setTimeout(() => {
-                // Simular dados de retorno
-                generateMockData();
-                loadingSpinner.style.display = 'none';
-                showNotification('Arquivos processados com sucesso!', 'success');
-                
-                // Atualizar estatísticas
-                updateStats();
-                
-                // Renderizar tabela
-                renderTable();
-                
-                // Renderizar gráficos
-                renderCharts();
-            }, 2000);
+        if (fileItems.length === 0) {
+            showNotification('Nenhum arquivo para processar', 'error');
+            return;
         }
 
-        function generateMockData() {
-            // Gerar dados mock para demonstração
-            const statuses = ['FINALIZADO', 'ROTA', 'DEVOLVIDO', 'AUSENTE', 'CANCELADO'];
-            const empresas = ['Magazine Luiza', 'Pichau', 'PetLove'];
-            const entregadores = ['João Silva', 'Maria Santos', 'Carlos Pereira', 'Ana Oliveira', 'Roberto Costa'];
-            
-            allData = [];
-            
-            for (let i = 1; i <= 100; i++) {
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-                const empresa = empresas[Math.floor(Math.random() * empresas.length)];
-                const entregador = entregadores[Math.floor(Math.random() * entregadores.length)];
-                
-                // Gerar data de previsão (hoje ou próximos dias)
-                const daysOffset = Math.floor(Math.random() * 7);
-                const dataPrevisao = new Date();
-                dataPrevisao.setDate(dataPrevisao.getDate() + daysOffset);
-                
-                allData.push({
-                    idPedido: `PED-${i.toString().padStart(5, '0')}`,
-                    empresa: empresa,
-                    cliente: `Cliente ${i}`,
-                    status: status,
-                    entregador: entregador,
-                    dataPrevisao: dataPrevisao.toISOString().split('T')[0],
-                    endereco: `Rua Exemplo ${i}, Bairro Teste`,
-                    cidade: 'São Paulo',
-                    estado: 'SP',
-                    cep: `${Math.floor(10000 + Math.random() * 90000)}-000`
-                });
-            }
-            
-            filteredData = [...allData];
+        // Mostrar loading
+        loadingSpinner.style.display = 'flex';
+        processBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+        processBtn.disabled = true;
+
+        // Coletar arquivos do input
+        const fileInput = document.getElementById('fileInput');
+        const formData = new FormData();
+
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('files', fileInput.files[i]);
         }
+
+        // Enviar arquivos para o backend
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Solicitar processamento dos arquivos
+                return fetch('/process', {
+                    method: 'POST'
+                });
+            } else {
+                throw new Error('Erro no upload');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Buscar dados processados
+                return fetch('/data');
+            } else {
+                throw new Error('Erro no processamento');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Usar dados reais do backend
+            allData = data;
+            filteredData = [...allData];
+
+            // Atualizar interface com dados reais
+            updateStats();
+            renderTable();
+            renderCharts();
+
+            showNotification('Arquivos processados com sucesso!', 'success');
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showNotification('Erro: ' + error.message, 'error');
+        })
+        .finally(() => {
+            loadingSpinner.style.display = 'none';
+            processBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Processar Arquivos';
+            processBtn.disabled = false;
+        });
+    }
 
         function updateStats() {
             const hoje = new Date().toISOString().split('T')[0];
@@ -1133,7 +1134,8 @@
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
             // Gerar dados mock iniciais para demonstração
-            generateMockData();
+            allData = [];
+            filteredData = []
             updateStats();
             renderTable();
             renderCharts();

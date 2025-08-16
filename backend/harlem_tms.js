@@ -391,10 +391,15 @@ app.post('/upload', upload.array('files', 3), (req, res) => {
 // Endpoint para processar os arquivos
 app.post('/process', async (req, res) => {
     try {
+        console.log('Iniciando processamento dos arquivos...');
+        
+        // Executar o processamento real
         const data = await unifyTables();
         generateBlacklist(data);
         generateEntregadoresPontuacao(data);
         filterPedidosVencendoHoje(data);
+        
+        console.log('Processamento concluído!');
         res.json({ success: true, message: 'Processamento concluído' });
     } catch (error) {
         console.error('Erro no processamento:', error);
@@ -406,18 +411,25 @@ app.post('/process', async (req, res) => {
 app.get('/data', (req, res) => {
     try {
         const unifiedFile = path.join(RELATORIOS_DIR, 'tabela_unificada.csv');
+        
         if (!fs.existsSync(unifiedFile)) {
-            return res.status(404).json({ error: 'Arquivo de dados não encontrado' });
+            return res.status(404).json({ error: 'Nenhum dado processado encontrado' });
         }
         
-        const workbook = xlsx.readFile(unifiedFile);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(worksheet);
-        res.json(data);
+        // Ler o arquivo CSV gerado pelo processamento
+        const results = [];
+        fs.createReadStream(unifiedFile)
+            .pipe(csv({ separator: ';' }))
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                res.json(results);
+            })
+            .on('error', (error) => {
+                throw error;
+            });
     } catch (error) {
-        console.error('Erro ao ler os dados:', error);
-        res.status(500).json({ error: 'Erro ao ler os dados' });
+        console.error('Erro ao ler dados:', error);
+        res.status(500).json({ error: 'Erro ao ler dados' });
     }
 });
 
