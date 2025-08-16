@@ -384,12 +384,12 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/downloads', express.static(RELATORIOS_DIR));
 
 // Endpoint para upload de arquivos
-app.post('/upload', upload.array('files', 3), (req, res) => {
+app.post('/api/upload', upload.array('files', 3), (req, res) => {
     res.json({ success: true, message: 'Arquivos recebidos com sucesso' });
 });
 
 // Endpoint para processar os arquivos
-app.post('/process', async (req, res) => {
+app.post('/api/process', async (req, res) => {
     try {
         console.log('Iniciando processamento dos arquivos...');
         
@@ -408,7 +408,7 @@ app.post('/process', async (req, res) => {
 });
 
 // Endpoint para obter dados unificados
-app.get('/data', (req, res) => {
+app.get('/api/data', (req, res) => {
     try {
         const unifiedFile = path.join(RELATORIOS_DIR, 'tabela_unificada.csv');
         
@@ -434,7 +434,7 @@ app.get('/data', (req, res) => {
 });
 
 // Endpoint para baixar relatórios
-app.get('/download/:filename', (req, res) => {
+app.get('/api/download/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(RELATORIOS_DIR, filename);
     

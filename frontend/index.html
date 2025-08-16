@@ -687,7 +687,7 @@
         }
 
         // Enviar arquivos para o backend
-        fetch('/upload', {
+        fetch('/api/upload', {
             method: 'POST',
             body: formData
         })
@@ -695,7 +695,7 @@
         .then(data => {
             if (data.success) {
                 // Solicitar processamento dos arquivos
-                return fetch('/process', {
+                return fetch('/api/process', {
                     method: 'POST'
                 });
             } else {
@@ -706,7 +706,7 @@
         .then(data => {
             if (data.success) {
                 // Buscar dados processados
-                return fetch('/data');
+                return fetch('/api/data');
             } else {
                 throw new Error('Erro no processamento');
             }
