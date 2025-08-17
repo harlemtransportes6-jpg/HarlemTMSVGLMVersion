@@ -5,17 +5,18 @@ const path = require('path');
 const csv = require('csv-parser');
 const xlsx = require('xlsx');
 const { format, parseISO, isValid, parse } = require('date-fns');
-
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 // Configurações
 const TABELAS_DIR = path.join(__dirname, 'Tabelas');
 const RELATORIOS_DIR = path.join(__dirname, 'Relatorios');
-if (!fs.existsSync(RELATORIOS_DIR)) {
-    fs.mkdirSync(RELATORIOS_DIR);
+if (!fs.existsSync(TABELAS_DIR)) {
+    fs.mkdirSync(TABELAS_DIR, { recursive: true });
 }
-
+if (!fs.existsSync(RELATORIOS_DIR)) {
+    fs.mkdirSync(RELATORIOS_DIR, { recursive: true });
+}
 // Mapeamento de colunas (unificado)
 const COLUMN_MAPPING = {
     'ID_PEDIDO': {
@@ -100,7 +101,6 @@ const COLUMN_MAPPING = {
         'PetLove': 'Total_Mercadoria'
     }
 };
-
 // Mapeamento de status (unificado e simplificado)
 const STATUS_MAPPING = {
     'FINALIZADO': ['Entregue', 'Finalizado'],
@@ -110,7 +110,6 @@ const STATUS_MAPPING = {
     'ROTA': ['Em Rota', 'Em Rota para Entrega'],
     'CANCELADO': ['Cancelado']
 };
-
 // Função para normalizar status
 function normalizeStatus(status) {
     if (!status) return "DESCONHECIDO";
@@ -122,7 +121,6 @@ function normalizeStatus(status) {
     }
     return "DESCONHECIDO";
 }
-
 // Função para normalizar datas
 function normalizeDate(dateStr) {
     if (!dateStr) return null;
@@ -136,7 +134,6 @@ function normalizeDate(dateStr) {
     }
     return date;
 }
-
 // Função para ler um arquivo (CSV ou Excel) e retornar um array de objetos
 function readFile(filePath, empresa) {
     const ext = path.extname(filePath).toLowerCase();
@@ -158,7 +155,6 @@ function readFile(filePath, empresa) {
         throw new Error(`Formato de arquivo não suportado: ${ext}`);
     }
 }
-
 // Função para carregar e padronizar um arquivo
 async function loadFile(filePath, empresa) {
     try {
@@ -171,7 +167,6 @@ async function loadFile(filePath, empresa) {
             }
             return normalizedRow;
         });
-
         // Mapear colunas
         const mappedData = normalizedData.map(row => {
             const newRow = { EMPRESA: empresa };
@@ -183,14 +178,12 @@ async function loadFile(filePath, empresa) {
             }
             return newRow;
         });
-
         // Normalizar status
         mappedData.forEach(row => {
             if (row.STATUS_ENTREGA) {
                 row.STATUS_ENTREGA = normalizeStatus(row.STATUS_ENTREGA);
             }
         });
-
         // Normalizar datas
         const dateCols = ['DATA_PEDIDO', 'DATA_STATUS', 'DATA_PREVISAO', 'DATA_DISTRIBUICAO'];
         mappedData.forEach(row => {
@@ -200,21 +193,18 @@ async function loadFile(filePath, empresa) {
                 }
             });
         });
-
         // Preencher nulos
         mappedData.forEach(row => {
             if (!row.NOME_ENTREGADOR) {
                 row.NOME_ENTREGADOR = 'esperando motorista';
             }
         });
-
         return mappedData;
     } catch (error) {
         console.error(`Erro ao carregar arquivo ${filePath}:`, error);
         return [];
     }
 }
-
 // Função para unificar tabelas
 async function unifyTables() {
     const files = {
@@ -222,7 +212,6 @@ async function unifyTables() {
         'Pichau': path.join(TABELAS_DIR, 'Pichau.xlsx'),
         'PetLove': path.join(TABELAS_DIR, 'PetLoveRelatorioTMS.xlsx')
     };
-
     const allData = [];
     for (const [empresa, filePath] of Object.entries(files)) {
         if (fs.existsSync(filePath)) {
@@ -232,11 +221,10 @@ async function unifyTables() {
             console.warn(`Aviso: Arquivo ${filePath} não encontrado. Pulando.`);
         }
     }
-
     if (allData.length === 0) {
         throw new Error('Nenhum arquivo encontrado em Tabelas/');
     }
-
+    
     // Remover duplicatas por ID_PEDIDO e EMPRESA
     const uniqueData = [];
     const seen = new Set();
@@ -247,23 +235,32 @@ async function unifyTables() {
             uniqueData.push(row);
         }
     });
-
+    
+    // Converter objetos Date para string ISO antes de salvar
+    const dataToSave = uniqueData.map(row => {
+        const newRow = { ...row };
+        const dateCols = ['DATA_PEDIDO', 'DATA_STATUS', 'DATA_PREVISAO', 'DATA_DISTRIBUICAO'];
+        dateCols.forEach(col => {
+            if (newRow[col] && newRow[col] instanceof Date) {
+                newRow[col] = newRow[col].toISOString();
+            }
+        });
+        return newRow;
+    });
+    
     // Salvar arquivo unificado (CSV)
     const unifiedFile = path.join(RELATORIOS_DIR, 'tabela_unificada.csv');
     // Converter para CSV (usando xlsx para escrever CSV com separador ;)
-    const worksheet = xlsx.utils.json_to_sheet(uniqueData);
+    const worksheet = xlsx.utils.json_to_sheet(dataToSave);
     const csvContent = xlsx.utils.sheet_to_csv(worksheet, { FS: ';' });
     fs.writeFileSync(unifiedFile, csvContent, 'utf8');
     console.log(`Tabela unificada salva em ${unifiedFile}`);
-
     return uniqueData;
 }
-
 // Função para gerar blacklist de clientes
 function generateBlacklist(data) {
     const insucessos = ['AUSENTE', 'INSUCESSO', 'DEVOLVIDO'];
     const filtered = data.filter(row => insucessos.includes(row.STATUS_ENTREGA));
-
     // Agrupar por destinatário, CEP e cidade
     const grouped = {};
     filtered.forEach(row => {
@@ -284,7 +281,6 @@ function generateBlacklist(data) {
         }
         grouped[key].Motivos.add(row.STATUS_ENTREGA);
     });
-
     // Filtrar apenas os com mais de 2 insucessos
     const blacklist = Object.values(grouped)
         .filter(item => item.Total_Insucessos > 2)
@@ -293,7 +289,6 @@ function generateBlacklist(data) {
             Motivos: Array.from(item.Motivos).join(', ')
         }))
         .sort((a, b) => b.Total_Insucessos - a.Total_Insucessos);
-
     // Salvar em Excel
     const blacklistFile = path.join(RELATORIOS_DIR, 'blacklist_clientes.xlsx');
     const worksheet = xlsx.utils.json_to_sheet(blacklist);
@@ -301,10 +296,8 @@ function generateBlacklist(data) {
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Blacklist');
     xlsx.writeFile(workbook, blacklistFile);
     console.log(`Blacklist salva em ${blacklistFile} (${blacklist.length} entradas)`);
-
     return blacklist;
 }
-
 // Função para gerar pontuação de entregadores
 function generateEntregadoresPontuacao(data) {
     // Agrupar por entregador
@@ -323,7 +316,6 @@ function generateEntregadoresPontuacao(data) {
             grouped[entregador].Sucessos += 1;
         }
     });
-
     const stats = Object.values(grouped).map(item => {
         const taxaSucesso = item.Total_Pedidos > 0 ? item.Sucessos / item.Total_Pedidos : 0;
         return {
@@ -332,7 +324,6 @@ function generateEntregadoresPontuacao(data) {
             Pontuacao: taxaSucesso > 0.97 ? 'Alta (>97%)' : 'Normal'
         };
     }).sort((a, b) => b.Taxa_Sucesso - a.Taxa_Sucesso);
-
     // Salvar em Excel
     const entregadoresFile = path.join(RELATORIOS_DIR, 'pontuacao_entregadores.xlsx');
     const worksheet = xlsx.utils.json_to_sheet(stats);
@@ -340,23 +331,19 @@ function generateEntregadoresPontuacao(data) {
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Entregadores');
     xlsx.writeFile(workbook, entregadoresFile);
     console.log(`Pontuação de entregadores salva em ${entregadoresFile}`);
-
     return stats;
 }
-
 // Função para filtrar pedidos vencendo hoje
 function filterPedidosVencendoHoje(data) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     const amanha = new Date(hoje);
     amanha.setDate(amanha.getDate() + 1);
-
     const filtrado = data.filter(row => {
         if (!row.DATA_PREVISAO) return false;
         const dataPrevisao = new Date(row.DATA_PREVISAO);
         return dataPrevisao >= hoje && dataPrevisao < amanha && row.STATUS_ENTREGA !== 'FINALIZADO';
     });
-
     // Salvar em Excel
     const pedidosVencendoFile = path.join(RELATORIOS_DIR, 'pedidos_vencendo_hoje.xlsx');
     const worksheet = xlsx.utils.json_to_sheet(filtrado);
@@ -364,10 +351,8 @@ function filterPedidosVencendoHoje(data) {
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Pedidos Vencendo Hoje');
     xlsx.writeFile(workbook, pedidosVencendoFile);
     console.log(`Pedidos vencendo hoje salvos em ${pedidosVencendoFile} (${filtrado.length})`);
-
     return filtrado;
 }
-
 // Configuração do multer para upload de arquivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -378,16 +363,17 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage });
-
+// Habilitar CORS
+app.use(cors());
+app.use(express.json());
 // Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/downloads', express.static(RELATORIOS_DIR));
-
 // Endpoint para upload de arquivos
 app.post('/api/upload', upload.array('files', 3), (req, res) => {
+    console.log('Arquivos recebidos:', req.files.map(f => f.originalname));
     res.json({ success: true, message: 'Arquivos recebidos com sucesso' });
 });
-
 // Endpoint para processar os arquivos
 app.post('/api/process', async (req, res) => {
     try {
@@ -406,7 +392,6 @@ app.post('/api/process', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 // Endpoint para obter dados unificados
 app.get('/api/data', (req, res) => {
     try {
@@ -432,7 +417,6 @@ app.get('/api/data', (req, res) => {
         res.status(500).json({ error: 'Erro ao ler dados' });
     }
 });
-
 // Endpoint para baixar relatórios
 app.get('/api/download/:filename', (req, res) => {
     const filename = req.params.filename;
@@ -449,18 +433,15 @@ app.get('/api/download/:filename', (req, res) => {
         }
     });
 });
-
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error('Erro no servidor:', err);
     res.status(500).json({ error: 'Erro interno do servidor' });
 });
-
 // Middleware para rotas não encontradas
 app.use((req, res) => {
     res.status(404).json({ error: 'Rota não encontrada' });
 });
-
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
