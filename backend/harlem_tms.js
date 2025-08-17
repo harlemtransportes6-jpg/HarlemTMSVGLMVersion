@@ -450,6 +450,17 @@ app.get('/api/download/:filename', (req, res) => {
     });
 });
 
+// Middleware para tratamento de erros
+app.use((err, req, res, next) => {
+    console.error('Erro no servidor:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+});
+
+// Middleware para rotas não encontradas
+app.use((req, res) => {
+    res.status(404).json({ error: 'Rota não encontrada' });
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
